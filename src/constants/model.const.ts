@@ -1,0 +1,12 @@
+export enum ROLESMODEL {
+  VIEWER = "VIEWER",
+  EDITOR = "EDITOR",
+  OWNER = "OWNER",
+}
+
+export enum STATUS {
+  PENDING = "PENDING",
+  ACCEPTED = "ACCEPTED",
+  REJECTED = "REJECTED",
+  CANCELLED = "CANCELLED",
+}

@@ -1,0 +1,14 @@
+import express from "express";
+import userRoute from "../apis/user.route.js";
+import workspaceRoute from "../apis/workspace.route.js";
+import workspaceInvitationRoute from "./workspaceInvitation.route.js";
+import workspaceMemberRoute from "./workspaceMember.route.js";
+const router = express.Router();
+
+router.use("/user", userRoute);
+router.use("/workspace", workspaceRoute);
+router.use("/workspaceInvitation", workspaceInvitationRoute);
+router.use("/workspaceMember", workspaceMemberRoute);
+
+
+export default router;
