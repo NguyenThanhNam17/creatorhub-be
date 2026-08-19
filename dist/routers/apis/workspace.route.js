@@ -13,7 +13,7 @@ class WorkspaceRoute extends BaseRoute {
         this.router.post("/archiveWorkspace", this.authentication, this.route(this.archiveWorkspace));
         this.router.post("/createWorkspace", this.authentication, this.route(this.createWorkspace));
         this.router.get("/listWorkspace", this.authentication, this.route(this.getListWorkspace));
-        this.router.get("/detailWorkspace", this.authentication, this.route(this.detailWorkspace));
+        this.router.get("/detailWorkspace/:id", this.authentication, this.route(this.detailWorkspace));
         this.router.put("/updateWorkspace", this.authentication, this.route(this.updateWorkspace));
         this.router.post("/restoreWorkspace", this.authentication, this.route(this.restoreWorkspace));
         this.router.delete("/deleteWorkspace", this.authentication, this.route(this.deleteWorkspace));
@@ -194,12 +194,12 @@ class WorkspaceRoute extends BaseRoute {
         });
     }
     async detailWorkspace(req, res) {
-        const workspaceId = req.query.workspaceId;
-        if (!workspaceId) {
+         let { id } = req.params;
+        if (!id) {
             throw ErrorHelper.requestDataInvalid("workspaceId không được để trống");
         }
         // Tìm Workspace
-        const workspace = await WorkspaceModel.findById(workspaceId).populate("ownerId", "workspaceMember", "workspaceRole");
+        const workspace = await WorkspaceModel.findById(id).populate("ownerId", "workspaceMember", "workspaceRole");
         if (!workspace) {
             throw ErrorHelper.recoredNotFound("Workspace");
         }
