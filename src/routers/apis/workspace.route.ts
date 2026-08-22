@@ -74,7 +74,9 @@ class WorkspaceRoute extends BaseRoute {
         req.tokenInfo = tokenData;
         next();
       } else {
-        throw ErrorHelper.permissionDeny("Bạn không có quyền truy cập Workspace này");
+        throw ErrorHelper.permissionDeny(
+          "Bạn không có quyền truy cập Workspace này",
+        );
       }
     } catch {
       throw ErrorHelper.unauthorized();
@@ -112,7 +114,9 @@ class WorkspaceRoute extends BaseRoute {
     });
 
     if (!isDirectOwner && !member) {
-      throw ErrorHelper.permissionDeny("Bạn không có quyền truy cập Workspace này");
+      throw ErrorHelper.permissionDeny(
+        "Bạn không có quyền truy cập Workspace này",
+      );
     }
 
     // Kiểm tra workspace mặc định
@@ -266,12 +270,7 @@ class WorkspaceRoute extends BaseRoute {
       throw ErrorHelper.requestDataInvalid("workspaceId không được để trống");
     }
 
-    // Tìm Workspace
-    const workspace = await WorkspaceModel.findById(workspaceId).populate(
-      "ownerId",
-      "workspaceMember",
-      "workspaceRole",
-    );
+    const workspace = await WorkspaceModel.findById(id);
     if (!workspace) {
       throw ErrorHelper.recoredNotFound("Workspace");
     }
@@ -289,7 +288,9 @@ class WorkspaceRoute extends BaseRoute {
     });
 
     if (!isOwner && !memberRecord) {
-      throw ErrorHelper.permissionDeny("Bạn không có quyền truy cập Workspace này");
+      throw ErrorHelper.permissionDeny(
+        "Bạn không có quyền truy cập Workspace này",
+      );
     }
 
     // Lấy thông tin Owner
@@ -345,7 +346,9 @@ class WorkspaceRoute extends BaseRoute {
     });
 
     if (!isOwner && !ownerMember) {
-      throw ErrorHelper.permissionDeny("Bạn không có quyền truy cập Workspace này");
+      throw ErrorHelper.permissionDeny(
+        "Bạn không có quyền truy cập Workspace này",
+      );
     }
 
     // Không cho đổi tên trùng
@@ -412,7 +415,9 @@ class WorkspaceRoute extends BaseRoute {
     });
 
     if (!isOwner && !ownerMember) {
-      throw ErrorHelper.permissionDeny("Bạn không có quyền truy cập Workspace này");
+      throw ErrorHelper.permissionDeny(
+        "Bạn không có quyền truy cập Workspace này",
+      );
     }
 
     if (workspace.isActive) {
@@ -471,7 +476,9 @@ class WorkspaceRoute extends BaseRoute {
     });
 
     if (!isOwner && !ownerMember) {
-      throw ErrorHelper.permissionDeny("Bạn không có quyền truy cập Workspace này");
+      throw ErrorHelper.permissionDeny(
+        "Bạn không có quyền truy cập Workspace này",
+      );
     }
 
     if (workspace.isActive) {
