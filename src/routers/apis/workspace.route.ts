@@ -33,7 +33,7 @@ class WorkspaceRoute extends BaseRoute {
       this.route(this.getListWorkspace),
     );
     this.router.get(
-      "/detailWorkspace",
+      "/detailWorkspace/:id",
       this.authentication,
       this.route(this.detailWorkspace),
     );
@@ -265,9 +265,9 @@ class WorkspaceRoute extends BaseRoute {
   }
 
   async detailWorkspace(req: Request, res: Response) {
-    const workspaceId = req.query.workspaceId as string;
-    if (!workspaceId) {
-      throw ErrorHelper.requestDataInvalid("workspaceId không được để trống");
+    const id = req.params.id;
+    if (!id) {
+      throw ErrorHelper.requestDataInvalid("ID không được để trống");
     }
 
     const workspace = await WorkspaceModel.findById(id);
