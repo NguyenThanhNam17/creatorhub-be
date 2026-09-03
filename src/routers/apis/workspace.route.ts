@@ -233,12 +233,12 @@ class WorkspaceRoute extends BaseRoute {
   if (req.query.category) {
     query.$and.push({
       category: req.query.category as string,
-    });
+    }); 
   }
 
   // Sắp xếp
   const sortDirection = req.query.sort === "asc" ? 1 : -1;
-  const sort = { createdAt: sortDirection };
+  const sort = { createdAt: sortDirection as 1 | -1 };
 
   // Tổng số workspace
   const total = await WorkspaceModel.countDocuments(query);
