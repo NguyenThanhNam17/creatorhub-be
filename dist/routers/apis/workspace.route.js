@@ -13,7 +13,7 @@ class WorkspaceRoute extends BaseRoute {
         this.router.post("/archiveWorkspace", this.authentication, this.route(this.archiveWorkspace));
         this.router.post("/createWorkspace", this.authentication, this.route(this.createWorkspace));
         this.router.get("/listWorkspace", this.authentication, this.route(this.getListWorkspace));
-        this.router.get("/detailWorkspace", this.authentication, this.route(this.detailWorkspace));
+        this.router.get("/detailWorkspace/:id", this.authentication, this.route(this.detailWorkspace));
         this.router.put("/updateWorkspace", this.authentication, this.route(this.updateWorkspace));
         this.router.post("/restoreWorkspace", this.authentication, this.route(this.restoreWorkspace));
         this.router.delete("/deleteWorkspace", this.authentication, this.route(this.deleteWorkspace));
@@ -137,16 +137,16 @@ class WorkspaceRoute extends BaseRoute {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
-        // Tìm các workspace mà user là thành viên hoạt động
+        // Lấy các workspace user là thành viên
         const members = await WorkspaceMemberModel.find({
             userId: currentUserId,
             isActive: true,
         });
         const memberWorkspaceIds = members.map((m) => m.workspaceId);
-        // Xây dựng câu truy vấn query
+        // Query
         const query = {
             $and: [
-                { isActive: true }, // Không lấy các Workspace đã Archive
+                { isActive: true },
                 {
                     $or: [
                         { ownerId: currentUserId },
@@ -155,13 +155,13 @@ class WorkspaceRoute extends BaseRoute {
                 },
             ],
         };
-        // Tìm kiếm theo tên
+        // Tìm kiếm
         if (req.query.search) {
             query.$and.push({
                 name: { $regex: req.query.search, $options: "i" },
             });
         }
-        // Lọc theo danh mục
+        // Lọc category
         if (req.query.category) {
             query.$and.push({
                 category: req.query.category,
@@ -170,20 +170,33 @@ class WorkspaceRoute extends BaseRoute {
         // Sắp xếp
         const sortDirection = req.query.sort === "asc" ? 1 : -1;
         const sort = { createdAt: sortDirection };
-        // Đếm tổng số bản ghi và truy vấn dữ liệu
+        // Tổng số workspace
         const total = await WorkspaceModel.countDocuments(query);
         const totalPages = Math.ceil(total / limit);
+        // Lấy danh sách workspace
         const workspaces = await WorkspaceModel.find(query)
             .sort(sort)
             .skip(skip)
-            .limit(limit);
+            .limit(limit)
+            .lean();
+        // Thêm số lượng thành viên
+        const workspacesWithMemberCount = await Promise.all(workspaces.map(async (workspace) => {
+            const memberCount = await WorkspaceMemberModel.countDocuments({
+                workspaceId: workspace._id,
+                isActive: true,
+            });
+            return {
+                ...workspace,
+                memberCount,
+            };
+        }));
         // Response
         return res.status(200).json({
             status: 200,
             code: "200",
             message: "success",
             data: {
-                workspaces,
+                workspaces: workspacesWithMemberCount,
                 pagination: {
                     total,
                     totalPages,
@@ -194,11 +207,11 @@ class WorkspaceRoute extends BaseRoute {
         });
     }
     async detailWorkspace(req, res) {
-        const workspaceId = req.query.workspaceId;
-        if (!workspaceId) {
-            throw ErrorHelper.requestDataInvalid("workspaceId không được để trống");
+        const id = req.params.id;
+        if (!id) {
+            throw ErrorHelper.requestDataInvalid("ID không được để trống");
         }
-        const workspace = await WorkspaceModel.findById(workspaceId);
+        const workspace = await WorkspaceModel.findById(id);
         if (!workspace) {
             throw ErrorHelper.recoredNotFound("Workspace");
         }

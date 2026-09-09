@@ -194,94 +194,95 @@ class WorkspaceRoute extends BaseRoute {
   }
 
   async getListWorkspace(req: Request, res: Response) {
-  const currentUserId = req.tokenInfo!._id;
+    const currentUserId = req.tokenInfo!._id;
 
-  // Phân trang
-  const page = parseInt(req.query.page as string) || 1;
-  const limit = parseInt(req.query.limit as string) || 10;
-  const skip = (page - 1) * limit;
+    // Phân trang
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
 
-  // Lấy các workspace user là thành viên
-  const members = await WorkspaceMemberModel.find({
-    userId: currentUserId,
-    isActive: true,
-  });
+    // Lấy các workspace user là thành viên
+    const members = await WorkspaceMemberModel.find({
+      userId: currentUserId,
+      isActive: true,
+    });
 
-  const memberWorkspaceIds = members.map((m) => m.workspaceId);
+    const memberWorkspaceIds = members.map((m) => m.workspaceId);
 
-  // Query
-  const query: any = {
-    $and: [
-      { isActive: true },
-      {
-        $or: [
-          { ownerId: currentUserId },
-          { _id: { $in: memberWorkspaceIds } },
-        ],
+    // Query
+    const query: any = {
+      $and: [
+        { isActive: true },
+        {
+          $or: [
+            { ownerId: currentUserId },
+            { _id: { $in: memberWorkspaceIds } },
+          ],
+        },
+      ],
+    };
+
+    // Tìm kiếm
+    if (req.query.search) {
+      query.$and.push({
+        name: { $regex: req.query.search as string, $options: "i" },
+      });
+    }
+
+    // Lọc category
+    if (req.query.category) {
+      query.$and.push({
+        category: req.query.category as string,
+      });
+    }
+
+    // Sắp xếp
+    const sortDirection = req.query.sort === "asc" ? 1 : -1;
+    const sort = { createdAt: sortDirection as 1 | -1 };
+
+    // Tổng số workspace
+    const total = await WorkspaceModel.countDocuments(query);
+    const totalPages = Math.ceil(total / limit);
+
+    // Lấy danh sách workspace
+    const workspaces = await WorkspaceModel.find(query)
+      .sort(sort)
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    // Thêm số lượng thành viên
+    const workspacesWithMemberCount = await Promise.all(
+      workspaces.map(async (workspace) => {
+        const memberCount = await WorkspaceMemberModel.countDocuments({
+          workspaceId: workspace._id,
+          isActive: true,
+        });
+
+        return {
+          ...workspace,
+          memberCount,
+        };
+      }),
+    );
+
+    // Response
+    return res.status(200).json({
+      status: 200,
+      code: "200",
+      message: "success",
+      data: {
+        workspaces: workspacesWithMemberCount,
+        pagination: {
+          total,
+          totalPages,
+          page,
+          limit,
+        },
       },
-    ],
-  };
-
-  // Tìm kiếm
-  if (req.query.search) {
-    query.$and.push({
-      name: { $regex: req.query.search as string, $options: "i" },
     });
   }
-
-  // Lọc category
-  if (req.query.category) {
-    query.$and.push({
-      category: req.query.category as string,
-    }); 
-  }
-
-  // Sắp xếp
-  const sortDirection = req.query.sort === "asc" ? 1 : -1;
-  const sort = { createdAt: sortDirection as 1 | -1 };
-
-  // Tổng số workspace
-  const total = await WorkspaceModel.countDocuments(query);
-  const totalPages = Math.ceil(total / limit);
-
-  // Lấy danh sách workspace
-  const workspaces = await WorkspaceModel.find(query)
-    .sort(sort)
-    .skip(skip)
-    .limit(limit)
-    .lean();
-
-  // Thêm số lượng thành viên
-  const workspacesWithMemberCount = await Promise.all(
-    workspaces.map(async (workspace) => {
-      const memberCount = await WorkspaceMemberModel.countDocuments({
-        workspaceId: workspace._id,
-        isActive: true,
-      });
-
-      return {
-        ...workspace,
-        memberCount,
-      };
-    }),
-  );
-
-  // Response
-  return res.status(200).json({
-    status: 200,
-    code: "200",
-    message: "success",
-    data: {
-      workspaces: workspacesWithMemberCount,
-      pagination: {
-        total,
-        totalPages,
-        page,
-        limit,
-      },
-    },
-  });
-}
+  
   async detailWorkspace(req: Request, res: Response) {
     const id = req.params.id;
     if (!id) {

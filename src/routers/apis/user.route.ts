@@ -50,10 +50,10 @@ class UserRoute extends BaseRoute {
       this.route(this.updateProfile),
     );
     this.router.get(
-    "/searchUser",
-    this.authentication,
-    this.route(this.searchUser),
-);
+      "/searchUser",
+      this.authentication,
+      this.route(this.searchUser),
+    );
   }
 
   async authentication(req: Request, res: Response, next: NextFunction) {
@@ -76,7 +76,9 @@ class UserRoute extends BaseRoute {
         req.tokenInfo = tokenData;
         next();
       } else {
-        throw ErrorHelper.permissionDeny("Bạn không có quyền truy cập hệ thống");
+        throw ErrorHelper.permissionDeny(
+          "Bạn không có quyền truy cập hệ thống",
+        );
       }
     } catch {
       throw ErrorHelper.unauthorized();
@@ -84,61 +86,51 @@ class UserRoute extends BaseRoute {
   }
 
   async searchUser(req: Request, res: Response) {
-
     const keyword = String(req.query.keyword || "").trim();
 
     if (!keyword) {
-        throw ErrorHelper.requestDataInvalid("keyword");
+      throw ErrorHelper.requestDataInvalid("keyword");
     }
 
     const users = await UserModel.find({
+      isActive: true,
 
-        isActive: true,
+      $or: [
+        {
+          username: {
+            $regex: keyword,
+            $options: "i",
+          },
+        },
 
-        $or: [
+        {
+          email: {
+            $regex: keyword,
+            $options: "i",
+          },
+        },
 
-            {
-                username: {
-                    $regex: keyword,
-                    $options: "i",
-                },
-            },
-
-            {
-                email: {
-                    $regex: keyword,
-                    $options: "i",
-                },
-            },
-
-            {
-                phone: {
-                    $regex: keyword,
-                    $options: "i",
-                },
-            },
-
-        ],
-
+        {
+          phone: {
+            $regex: keyword,
+            $options: "i",
+          },
+        },
+      ],
     }).select("-password -key");
 
     return res.status(200).json({
+      status: 200,
 
-        status: 200,
+      code: "200",
 
-        code: "200",
+      message: "success",
 
-        message: "success",
-
-        data: {
-
-            users,
-
-        },
-
+      data: {
+        users,
+      },
     });
-
-}
+  }
 
   async updateProfile(req: Request, res: Response) {
     let { username, phone, email, avatar } = req.body;
