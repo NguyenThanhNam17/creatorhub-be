@@ -6,6 +6,7 @@ import { BaseRoute, } from "../../base/baseRoutes.js";
 import { WorkspaceModel } from "../../models/workspace/workspace.model.js";
 import { ContentModel } from "../../models/content/content.model.js";
 import { WorkspaceMemberModel } from "../../models/workspaceMember/workspaceMember.model.js";
+import { CONTENT_STATUS } from "../../constants/model.const.js";
 class ContentRoute extends BaseRoute {
     constructor() {
         super();
@@ -51,10 +52,9 @@ class ContentRoute extends BaseRoute {
         if (!workspace) {
             throw ErrorHelper.forbidden("Workspace không tồn tại");
         }
-        let listContent = await ContentModel.find({ workspaceId: id });
-        if (!listContent || listContent.length === 0) {
-            throw ErrorHelper.forbidden("Không có content nào trong workspace này");
-        }
+        const limit = parseInt(req.query.limit) || 10;
+        const page = parseInt(req.query.page) || 1;
+        const skip = (page - 1) * limit;
         let member = await WorkspaceMemberModel.findOne({
             workspaceId: id,
             userId: req.tokenInfo._id,
@@ -63,11 +63,20 @@ class ContentRoute extends BaseRoute {
         if (!member) {
             throw ErrorHelper.forbidden("Bạn không phải là thành viên của workspace này");
         }
+        let listContent = await ContentModel.find({ workspaceId: id })
+            .skip(skip)
+            .limit(limit);
+        const total = await ContentModel.countDocuments({ workspaceId: id });
         return res.json({
             status: 200,
             code: 200,
             message: "Lấy danh sách content thành công",
-            data: listContent,
+            data: {
+                contents: listContent,
+                total,
+                page,
+                limit,
+            },
         });
     }
     async getOneContent(req, res) {
@@ -96,7 +105,7 @@ class ContentRoute extends BaseRoute {
         });
     }
     async createContent(req, res) {
-        let { title, description, status, thumbnailUrl, workspaceId, assignedTo } = req.body;
+        let { title, description, thumbnailUrl, workspaceId, assignedTo } = req.body;
         let workspace = await WorkspaceModel.findById(workspaceId);
         if (!workspace) {
             throw ErrorHelper.forbidden("Workspace không tồn tại");
@@ -122,7 +131,7 @@ class ContentRoute extends BaseRoute {
         let content = new ContentModel({
             title,
             description,
-            status,
+            status: CONTENT_STATUS.IDEA,
             thumbnailUrl,
             workspaceId,
             createdBy: req.tokenInfo._id,
@@ -179,6 +188,10 @@ class ContentRoute extends BaseRoute {
         });
         if (!member) {
             throw ErrorHelper.forbidden("Bạn không phải là thành viên của workspace này");
+        }
+        const validStatuses = Object.values(CONTENT_STATUS);
+        if (status && !validStatuses.includes(status)) {
+            throw ErrorHelper.forbidden("Status không hợp lệ");
         }
         content.title = title;
         content.description = description;

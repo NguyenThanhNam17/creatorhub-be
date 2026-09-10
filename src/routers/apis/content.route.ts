@@ -11,6 +11,7 @@ import {
 import { WorkspaceModel } from "../../models/workspace/workspace.model.js";
 import { ContentModel } from "../../models/content/content.model.js";
 import { WorkspaceMemberModel } from "../../models/workspaceMember/workspaceMember.model.js";
+import { CONTENT_STATUS } from "../../constants/model.const.js";
 
 class ContentRoute extends BaseRoute {
   constructor() {
@@ -143,7 +144,7 @@ class ContentRoute extends BaseRoute {
   }
 
   async createContent(req: Request, res: Response) {
-    let { title, description, status, thumbnailUrl, workspaceId, assignedTo } =
+    let { title, description, thumbnailUrl, workspaceId, assignedTo } =
       req.body;
     let workspace = await WorkspaceModel.findById(workspaceId);
     if (!workspace) {
@@ -173,7 +174,7 @@ class ContentRoute extends BaseRoute {
     let content = new ContentModel({
       title,
       description,
-      status,
+      status: CONTENT_STATUS.IDEA,
       thumbnailUrl,
       workspaceId,
       createdBy: req.tokenInfo!._id,
@@ -237,6 +238,13 @@ class ContentRoute extends BaseRoute {
         "Bạn không phải là thành viên của workspace này",
       );
     }
+
+    const validStatuses = Object.values(CONTENT_STATUS);
+
+    if (status && !validStatuses.includes(status)) {
+      throw ErrorHelper.forbidden("Status không hợp lệ");
+    }
+
     content.title = title;
     content.description = description;
     content.status = status;

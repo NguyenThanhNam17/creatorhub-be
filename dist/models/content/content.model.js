@@ -2,7 +2,7 @@ import mongoose, { Types } from "mongoose";
 const ContentSchema = new mongoose.Schema({
     title: { type: String, required: true },
     description: { type: String },
-    status: { type: String },
+    status: { type: String, enum: ["IDEA", "DRAFT", "REVIEW", "APPROVED", "PUBLISHED", "REJECTED"], default: "IDEA" },
     thumbnailUrl: { type: String },
     workspaceId: { type: Types.ObjectId, ref: "workspace", required: true },
     createdBy: { type: Types.ObjectId, ref: "user", required: true },
