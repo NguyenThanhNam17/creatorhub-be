@@ -12,6 +12,7 @@ export type IContent = BaseDocument & {
   assignedTo?: Types.ObjectId;
   publishedAt?: Date;
   joinedAt?: Date;
+  updateBy?: string;
   isActive?: boolean;
 };
 
@@ -26,6 +27,7 @@ const ContentSchema = new mongoose.Schema(
     assignedTo: { type: Types.ObjectId, ref: "user" },
     publishedAt: { type: Date },
     joinedAt: { type: Date },
+    updateBy: { type: String },
     isActive: { type: Boolean, default: true },
   },
   {

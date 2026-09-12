@@ -220,6 +220,7 @@ class ContentRoute extends BaseRoute {
   async updateContent(req: Request, res: Response) {
     let { id } = req.params;
     let { title, description, status, thumbnailUrl, assignedTo } = req.body;
+    const currentUserId = req.tokenInfo!._id;
     let content = await ContentModel.findById(id);
     if (!content) {
       throw ErrorHelper.forbidden("Content không tồn tại");
@@ -238,6 +239,10 @@ class ContentRoute extends BaseRoute {
         "Bạn không phải là thành viên của workspace này",
       );
     }
+    let updateBy = await UserModel.findById(currentUserId);
+    if (!updateBy) {
+      throw ErrorHelper.forbidden("Người cập nhật không tồn tại");
+    }
 
     const validStatuses = Object.values(CONTENT_STATUS);
 
@@ -250,6 +255,7 @@ class ContentRoute extends BaseRoute {
     content.status = status;
     content.thumbnailUrl = thumbnailUrl;
     content.assignedTo = assignedTo;
+    content.updateBy = updateBy.username.toString();
     await content.save();
     return res.json({
       status: 200,
