@@ -348,11 +348,12 @@ class UserRoute extends BaseRoute {
         });
     }
     async updateUser(req, res) {
-        let { id, username, phone, password, email } = req.body;
-        if (req.tokenInfo.role_ !== ROLES.ADMIN && req.tokenInfo._id !== id) {
+        let { username, phone, password, email } = req.body;
+        let idUser = req.tokenInfo._id;
+        if (req.tokenInfo.role_ !== ROLES.ADMIN && req.tokenInfo._id !== idUser) {
             throw ErrorHelper.permissionDeny("Bạn không có quyền truy cập hệ thống");
         }
-        let user = await UserModel.findById(id);
+        let user = await UserModel.findById(idUser);
         if (!user) {
             throw ErrorHelper.userNotExist();
         }
