@@ -43,6 +43,11 @@ class WorkspaceInvitationRoute extends BaseRoute {
       this.authentication,
       this.route(this.cancelWorkspaceInvitation),
     );
+     this.router.post(
+      "/searchUserByEmail",
+      this.authentication,
+      this.route(this.searchUserByEmail),
+    );
   }
 
   async authentication(req: Request, res: Response, next: NextFunction) {
@@ -237,6 +242,27 @@ class WorkspaceInvitationRoute extends BaseRoute {
       message: "Hủy lời mời workspace thành công",
       data: { invitation },
     });
+  }
+
+
+  async searchUserByEmail(req:Request, res: Response){
+    let {gmail} = req.body;
+    if(!gmail){
+      throw ErrorHelper.forbidden("Chưa nhập Gmail");
+    } 
+    const user = await UserModel.findOne({email:gmail});
+    if(!user){
+      throw ErrorHelper.userNotExist();
+    }
+    const idUser = await user._id;
+    return res.status(200).json({
+      status:200,
+      code:"200",
+      message:"Lấy id người dùng thành công",
+      data:{
+        idUser
+      }
+    })
   }
 }
 export default new WorkspaceInvitationRoute().router;

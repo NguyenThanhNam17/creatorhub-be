@@ -16,6 +16,7 @@ class WorkspaceInvitationRoute extends BaseRoute {
         this.router.post("/acceptWorkspaceInvitation/:id", this.authentication, this.route(this.acceptWorkspaceInvitation));
         this.router.post("/rejectWorkspaceInvitation/:id", this.authentication, this.route(this.rejectWorkspaceInvitation));
         this.router.post("/cancelWorkspaceInvitation/:id", this.authentication, this.route(this.cancelWorkspaceInvitation));
+        this.router.post("/searchUser", this.authentication, this.route(this.searchUserByEmail));
     }
     async authentication(req, res, next) {
         try {
@@ -188,6 +189,25 @@ class WorkspaceInvitationRoute extends BaseRoute {
             code: 200,
             message: "Hủy lời mời workspace thành công",
             data: { invitation },
+        });
+    }
+    async searchUserByEmail(req, res) {
+        let { gmail } = req.body;
+        if (!gmail) {
+            throw ErrorHelper.forbidden("Chưa nhập Gmail");
+        }
+        const user = await UserModel.findOne({ email: gmail });
+        if (!user) {
+            throw ErrorHelper.userNotExist();
+        }
+        const idUser = await user._id;
+        return res.status(200).json({
+            status: 200,
+            code: "200",
+            message: "Lấy id người dùng thành công",
+            data: {
+                idUser
+            }
         });
     }
 }
