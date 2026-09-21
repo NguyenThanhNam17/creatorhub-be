@@ -43,7 +43,7 @@ class WorkspaceInvitationRoute extends BaseRoute {
       this.authentication,
       this.route(this.cancelWorkspaceInvitation),
     );
-     this.router.post(
+    this.router.post(
       "/searchUserByEmail",
       this.authentication,
       this.route(this.searchUserByEmail),
@@ -244,25 +244,24 @@ class WorkspaceInvitationRoute extends BaseRoute {
     });
   }
 
-
-  async searchUserByEmail(req:Request, res: Response){
-    let {email} = req.body;
-    if(!email){
+  async searchUserByEmail(req: Request, res: Response) {
+    let { email } = req.body;
+    if (!email) {
       throw ErrorHelper.forbidden("Chưa nhập email");
-    } 
-    const user = await UserModel.findOne({email:email});
-    if(!user){
+    }
+    const user = await UserModel.findOne({ email: email });
+    if (!user) {
       throw ErrorHelper.userNotExist();
     }
-    const idUser = await user._id;
+
     return res.status(200).json({
-      status:200,
-      code:"200",
-      message:"Lấy id người dùng thành công",
-      data:{
-        idUser
-      }
-    })
+      status: 200,
+      code: "200",
+      message: "Lấy id người dùng thành công",
+      data: {
+        idUser: user._id,
+      },
+    });
   }
 }
 export default new WorkspaceInvitationRoute().router;
