@@ -16,7 +16,7 @@ class WorkspaceInvitationRoute extends BaseRoute {
         this.router.post("/acceptWorkspaceInvitation/:id", this.authentication, this.route(this.acceptWorkspaceInvitation));
         this.router.post("/rejectWorkspaceInvitation/:id", this.authentication, this.route(this.rejectWorkspaceInvitation));
         this.router.post("/cancelWorkspaceInvitation/:id", this.authentication, this.route(this.cancelWorkspaceInvitation));
-        this.router.post("/searchUser", this.authentication, this.route(this.searchUserByEmail));
+        this.router.post("/searchUserByEmail", this.authentication, this.route(this.searchUserByEmail));
     }
     async authentication(req, res, next) {
         try {

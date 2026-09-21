@@ -246,11 +246,11 @@ class WorkspaceInvitationRoute extends BaseRoute {
 
 
   async searchUserByEmail(req:Request, res: Response){
-    let {gmail} = req.body;
-    if(!gmail){
-      throw ErrorHelper.forbidden("Chưa nhập Gmail");
+    let {email} = req.body;
+    if(!email){
+      throw ErrorHelper.forbidden("Chưa nhập email");
     } 
-    const user = await UserModel.findOne({email:gmail});
+    const user = await UserModel.findOne({email:email});
     if(!user){
       throw ErrorHelper.userNotExist();
     }
