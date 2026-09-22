@@ -107,7 +107,9 @@ class WorkspaceInvitationRoute extends BaseRoute {
         let invitations = await WorkspaceInvitationModel.find({
             invitedUserId: req.tokenInfo?._id,
             status: STATUS.PENDING,
-        });
+        })
+            .populate("invitedByUserId", "username email")
+            .populate("workspaceId", "name");
         return res.status(200).json({
             status: 200,
             code: 200,
@@ -192,22 +194,21 @@ class WorkspaceInvitationRoute extends BaseRoute {
         });
     }
     async searchUserByEmail(req, res) {
-        let { gmail } = req.body;
-        if (!gmail) {
-            throw ErrorHelper.forbidden("Chưa nhập Gmail");
+        let { email } = req.body;
+        if (!email) {
+            throw ErrorHelper.forbidden("Chưa nhập email");
         }
-        const user = await UserModel.findOne({ email: gmail });
+        const user = await UserModel.findOne({ email: email });
         if (!user) {
             throw ErrorHelper.userNotExist();
         }
-        const idUser = await user._id;
         return res.status(200).json({
             status: 200,
             code: "200",
             message: "Lấy id người dùng thành công",
             data: {
-                idUser
-            }
+                idUser: user._id,
+            },
         });
     }
 }

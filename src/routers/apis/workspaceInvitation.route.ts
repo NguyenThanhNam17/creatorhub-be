@@ -155,7 +155,9 @@ class WorkspaceInvitationRoute extends BaseRoute {
     let invitations = await WorkspaceInvitationModel.find({
       invitedUserId: req.tokenInfo?._id,
       status: STATUS.PENDING,
-    });
+    })
+      .populate("invitedByUserId", "username email")
+      .populate("workspaceId", "name");
     return res.status(200).json({
       status: 200,
       code: 200,
